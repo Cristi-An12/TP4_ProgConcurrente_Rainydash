@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>RainyDash — Delivery Simulator</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  HEADER                                                               -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<header id="app-header">
+    <div class="header-left">
+        <span class="logo">🏍️ RainyDash</span>
+        <span class="subtitle">Delivery Simulator — Producer / Consumer with Semaphores</span>
+    </div>
+    <div class="header-right">
+        <span id="weather-badge" class="badge badge-sunny">☀️ SUNNY</span>
+        <span id="status-badge" class="badge badge-stopped">⏹ STOPPED</span>
+    </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  MAIN GRID                                                            -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<main class="grid">
+
+    <!-- ── Panel 1: City Map ─────────────────────────────────────────── -->
+    <section class="panel panel-map" id="panel-map">
+        <h2 class="panel-title">🗺️ City Map</h2>
+        <canvas id="cityCanvas" width="600" height="400"></canvas>
+    </section>
+
+    <!-- ── Panel 2: Buffer Visualisation ─────────────────────────────── -->
+    <section class="panel panel-buffer" id="panel-buffer">
+        <h2 class="panel-title">📦 Order Buffer — Circular Queue (capacity = <span id="bufferCapacity">10</span>)</h2>
+
+        <!-- Semaphore live values -->
+        <div class="semaphore-row">
+            <div class="sem-card" id="sem-empty">
+                <span class="sem-label">emptySlots</span>
+                <span class="sem-value" id="sem-empty-val">10</span>
+            </div>
+            <div class="sem-card" id="sem-filled">
+                <span class="sem-label">filledSlots</span>
+                <span class="sem-value" id="sem-filled-val">0</span>
+            </div>
+            <div class="sem-card" id="sem-mutex">
+                <span class="sem-label">mutex</span>
+                <span class="sem-value" id="sem-mutex-val">🔓 free</span>
+            </div>
+        </div>
+
+        <!-- Buffer slots -->
+        <div id="buffer-slots" class="buffer-slots"></div>
+
+        <!-- Legend -->
+        <div class="buffer-legend">
+            <span class="legend-item"><span class="dot dot-empty"></span> empty</span>
+            <span class="legend-item"><span class="dot dot-fresh"></span> &lt;10s</span>
+            <span class="legend-item"><span class="dot dot-mid"></span> 10–20s</span>
+            <span class="legend-item"><span class="dot dot-stale"></span> &gt;20s</span>
+            <span class="legend-item"><span class="star">⭐</span> premium</span>
+        </div>
+    </section>
+
+    <!-- ── Panel 3: Stats + Controls ─────────────────────────────────── -->
+    <section class="panel panel-controls" id="panel-controls">
+        <h2 class="panel-title">📊 Stats &amp; Controls</h2>
+
+        <!-- Counters -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-icon">📝</span>
+                <span class="stat-value" id="stat-total">0</span>
+                <span class="stat-label">Created</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">✅</span>
+                <span class="stat-value" id="stat-delivered">0</span>
+                <span class="stat-label">Delivered</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">❌</span>
+                <span class="stat-value" id="stat-cancelled">0</span>
+                <span class="stat-label">Cancelled</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">📦</span>
+                <span class="stat-value" id="stat-queue">0</span>
+                <span class="stat-label">In Queue</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">🏍️</span>
+                <span class="stat-value" id="stat-riders">0</span>
+                <span class="stat-label">Riders</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">⏱️</span>
+                <span class="stat-value" id="stat-avgtime">0s</span>
+                <span class="stat-label">Avg Time</span>
+            </div>
+        </div>
+
+        <!-- Simulation controls -->
+        <div class="controls-row">
+            <button id="btn-start"   class="btn btn-green"   onclick="simControl('start')">▶ Start</button>
+            <button id="btn-pause"   class="btn btn-yellow"  onclick="simControl('pause')">⏸ Pause</button>
+            <button id="btn-stop"    class="btn btn-red"     onclick="simControl('stop')">⏹ Stop</button>
+            <button id="btn-weather" class="btn btn-blue"    onclick="toggleWeather()">🌧️ Rain</button>
+            <button id="btn-rider"   class="btn btn-purple"  onclick="addRider()">+ Rider</button>
+        </div>
+
+        <!-- Delivery time histogram -->
+        <h3 class="sub-title">Delivery Times (last 20)</h3>
+        <canvas id="histogramCanvas" width="360" height="100"></canvas>
+
+        <!-- Rider status list -->
+        <h3 class="sub-title">Riders</h3>
+        <div id="rider-list" class="rider-list"></div>
+    </section>
+
+</main>
+
+<!-- SockJS + STOMP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script th:src="@{/js/simulation.js}"></script>
+</body>
+</html>
